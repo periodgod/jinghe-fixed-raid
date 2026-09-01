@@ -585,7 +585,7 @@ function normalizeConfiguredRoster(config, template) {
   }
   // v32：新增两个大账号（各含冰谷、静谧、真知、进化四个区服账号），共32个小号；
   // 新账号追加到固定团本队伍末尾，不改变原有16队顺序。
-  if (storedRosterPlanVersion < 32) {
+  if (storedRosterPlanVersion >= 32 && storedRosterPlanVersion < 33) {
     const newBigAccounts = [
       { bigName: '13149147172', prefixes: ['131冰谷', '131静谧', '131真知', '131进化'] },
       { bigName: '17609146450', prefixes: ['176冰谷', '176静谧', '176真知', '176进化'] },
@@ -628,6 +628,28 @@ function normalizeConfiguredRoster(config, template) {
       config.fixedRaidSquads.push({ leader: 'AAA建材', devices: { '电脑': 'AAA建材', '平板': tabletChars[index % tabletChars.length], '手机1': left, '手机2': right } });
     });
   }
+  // v33：按用户要求永久移除13149147172、17609146450及其32个角色。
+  if (storedRosterPlanVersion >= 32 && storedRosterPlanVersion < 33) {
+    const retiredAccounts = new Set([
+      '131冰谷', '131静谧', '131真知', '131进化',
+      '176冰谷', '176静谧', '176真知', '176进化',
+    ]);
+    const retiredCharacters = new Set(config.accounts
+      .filter(account => retiredAccounts.has(account?.name))
+      .flatMap(account => account.chars || []));
+    config.retiredRosterCharacters = [...new Set([...(config.retiredRosterCharacters || []), ...retiredCharacters])];
+    config.accounts = (config.accounts || []).filter(account => !retiredAccounts.has(account?.name));
+    config.accountMergeGroups = (config.accountMergeGroups || []).map(group => ({
+      ...group,
+      accountNames: (group.accountNames || []).filter(name => !retiredAccounts.has(name)),
+    })).filter(group => group.accountNames.length);
+    if (Array.isArray(config.fixedRaidSquads)) {
+      config.fixedRaidSquads = config.fixedRaidSquads.filter(squad => !Object.values(squad?.devices || {}).some(name => retiredCharacters.has(name)));
+    }
+    retiredCharacters.forEach(name => {
+      ['characterRoleTiers', 'characterRegions'].forEach(key => { if (config[key]) delete config[key][name]; });
+    });
+  }
   // v26：四个普通账号共16个角色全部为中号，固定16队的平板位逐队使用一个中号。
   if (storedRosterPlanVersion < 26) {
     ['兵god', '兵god2', '兵god3', '兵god4', '我不是问号', '雷霆2', '奥布里3', 'A1804',
@@ -651,7 +673,7 @@ function normalizeConfiguredRoster(config, template) {
     config.raidDungeons.forEach(raid => { if (raid && typeof raid === 'object') raid.carryMode = 'single'; });
   }
   config.schedulingConstraints.raidPreferredStandaloneCharacter = templateConstraints.raidPreferredStandaloneCharacter || '';
-  config.rosterPlanVersion = 32;
+  config.rosterPlanVersion = 33;
   delete config.dailyGroupPlan;
   delete config.raidSquadPlan;
   return before !== JSON.stringify(config);
