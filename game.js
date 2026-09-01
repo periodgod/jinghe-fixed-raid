@@ -5547,7 +5547,7 @@ function initGame() {
   renderDailyStarfield();
 
   // 云端同步是异步的：先立即显示本地数据，连接成功后再用云端数据刷新。
-  window.SUPABASE_SYNC?.init?.(DATA, remoteData => {
+  const applyRemoteGameData = remoteData => {
     if (!remoteData || typeof remoteData !== 'object') return;
     applyingRemoteGameData = true;
     try {
@@ -5559,10 +5559,14 @@ function initGame() {
     } finally {
       applyingRemoteGameData = false;
     }
-  }, info => {
+  };
+  window.SUPABASE_SYNC?.init?.(DATA, applyRemoteGameData, info => {
     const label = document.getElementById('gameWeekLabel');
     if (label && info?.message) label.title = info.message;
-  });
+  }).then(result => {
+    // 首次打开时直接应用 Supabase 返回的数据；后续变更由实时订阅回调处理。
+    if (result?.data) applyRemoteGameData(result.data);
+  }).catch(error => console.warn('Supabase 首次数据应用失败', error));
 
   console.log('💎 晶核日常管理已就绪');
 }
