@@ -583,6 +583,46 @@ function normalizeConfiguredRoster(config, template) {
       });
     });
   }
+  // v31：新增两个大账号（各含冰谷、静谧、真知、进化四个区服账号），共32个小号；
+  // 新账号追加到固定团本队伍末尾，不改变原有16队顺序。
+  if (storedRosterPlanVersion < 31) {
+    const newBigAccounts = [
+      { bigName: '13149147172', prefixes: ['131冰谷', '131静谧', '131真知', '131进化'] },
+      { bigName: '17609146450', prefixes: ['176冰谷', '176静谧', '176真知', '176进化'] },
+    ];
+    const newCharacters = [];
+    newBigAccounts.forEach(({ prefixes }) => prefixes.forEach(accountName => {
+      let account = config.accounts.find(item => item.name === accountName);
+      if (!account) { account = { name: accountName, chars: [], charUids: {} }; config.accounts.push(account); }
+      if (!Array.isArray(account.chars)) account.chars = [];
+      if (!account.charUids || typeof account.charUids !== 'object') account.charUids = {};
+      for (let index = 1; index <= 4; index++) {
+        const charName = `${accountName}${index}`;
+        if (!account.chars.includes(charName)) account.chars.push(charName);
+        config.characterRoleTiers[charName] = 'small';
+        config.characterRegions[charName] = index % 2 === 0 ? 'region2' : 'region1';
+        newCharacters.push(charName);
+      }
+    }));
+    if (!Array.isArray(config.accountMergeGroups)) config.accountMergeGroups = [];
+    newBigAccounts.forEach(({ bigName, prefixes }) => {
+      const accountNames = prefixes.filter(name => config.accounts.some(account => account.name === name));
+      let group = config.accountMergeGroups.find(item => item.accountId === bigName || item.name === bigName);
+      if (!group) {
+        group = { id: `merge-${bigName}`, name: bigName, accountNames: [], accountId: bigName, accountNote: 'zz123123' };
+        config.accountMergeGroups.push(group);
+      }
+      group.name = bigName; group.accountId = bigName; group.accountNote = group.accountNote || 'zz123123';
+      group.accountNames = [...new Set([...(group.accountNames || []), ...accountNames])];
+    });
+    const tabletChars = ['153蓝道夫', '枪leo1', '枪leo2', '枪leo3', '我不是问号', '雷霆2', '奥布里3', 'A1804', '兵god', '兵god2', '兵god3', '兵god4', '枪leo8', '枪leo9', '枪leo10', '枪leo11'];
+    if (!Array.isArray(config.fixedRaidSquads)) config.fixedRaidSquads = [];
+    for (let index = 0; index < newCharacters.length; index += 2) {
+      const left = newCharacters[index], right = newCharacters[index + 1];
+      const exists = config.fixedRaidSquads.some(squad => squad?.devices?.手机1 === left || squad?.devices?.手机2 === right || squad?.devices?.手机1 === right || squad?.devices?.手机2 === left);
+      if (!exists) config.fixedRaidSquads.push({ leader: 'AAA建材', devices: { '电脑': 'AAA建材', '平板': tabletChars[(index / 2) % tabletChars.length], '手机1': left, '手机2': right } });
+    }
+  }
   // v26：四个普通账号共16个角色全部为中号，固定16队的平板位逐队使用一个中号。
   if (storedRosterPlanVersion < 26) {
     ['兵god', '兵god2', '兵god3', '兵god4', '我不是问号', '雷霆2', '奥布里3', 'A1804',
@@ -606,7 +646,7 @@ function normalizeConfiguredRoster(config, template) {
     config.raidDungeons.forEach(raid => { if (raid && typeof raid === 'object') raid.carryMode = 'single'; });
   }
   config.schedulingConstraints.raidPreferredStandaloneCharacter = templateConstraints.raidPreferredStandaloneCharacter || '';
-  config.rosterPlanVersion = 29;
+  config.rosterPlanVersion = 31;
   delete config.dailyGroupPlan;
   delete config.raidSquadPlan;
   return before !== JSON.stringify(config);
