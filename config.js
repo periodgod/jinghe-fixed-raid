@@ -9,8 +9,8 @@ const CONFIG = {
   // 在 Supabase 项目中创建 game_state 表后，填写项目 URL 和 anon public key。
   // 留空时网页继续使用浏览器本地保存，不影响离线使用。
   supabase: {
-    url: "",
-    anonKey: "",
+    url: "https://bsqnbvbnvjtjyfgzdrbd.supabase.co",
+    anonKey: "sb_publishable_qWO9BSxyBSDAbrB829aLdA_bvhZG5wv",
     table: "game_state",
     rowId: "default"
   },
