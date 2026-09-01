@@ -1716,6 +1716,9 @@ input.game-check:hover { border-color: var(--blue); }
 .account-merge-members small { color: #64748b; }
 .account-merge-empty { margin: 0; padding: 8px; color: #64748b; font-size: 12px; }
 .account-merge-hidden-note { margin: 8px 0; padding: 7px 10px; border-radius: 8px; background: #ecfeff; color: #0e7490; font-size: 11px; }
+.account-merge-child-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px; background: #f8fcff; }
+.account-merge-child { min-width: 0; border-color: #bfdbfe; }
+.account-merge-child > header { background: #eff6ff; }
 .raid-big-account-transfer { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 10px; padding: 10px 12px; border: 1px solid #86efac; border-radius: 10px; background: #f0fdf4; color: #14532d; }
 .raid-big-account-title { flex: 1 1 240px; }
 .raid-big-account-title strong, .raid-big-account-title small { display: block; }
@@ -1762,4 +1765,5 @@ input.game-check:hover { border-color: var(--blue); }
   .core-roster-summary { flex-direction: column; }
   .account-merge-card > header { grid-template-columns: 1fr 1fr; }
   .account-merge-card > header > button { grid-column: 1 / -1; justify-self: start; }
+  .account-merge-child-list { grid-template-columns: 1fr; padding: 7px; }
 }
