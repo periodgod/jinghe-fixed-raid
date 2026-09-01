@@ -1710,7 +1710,8 @@ input.game-check:hover { border-color: var(--blue); }
 .account-merge-card > header span { color: #64748b; font-size: 10px; }
 .account-merge-card input { min-width: 0; padding: 6px 7px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; font-size: 12px; }
 .account-merge-members { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; }
-.account-merge-members label { display: inline-flex; align-items: center; gap: 5px; padding: 5px 7px; border: 1px solid #dbeafe; border-radius: 7px; background: #f8fafc; color: #334155; font-size: 11px; }
+.account-merge-members label { display: inline-flex; align-items: flex-start; gap: 5px; padding: 5px 7px; border: 1px solid #dbeafe; border-radius: 7px; background: #f8fafc; color: #334155; font-size: 11px; }
+.account-merge-members label span { display: grid; gap: 2px; }
 .account-merge-members label:has(input:checked) { border-color: #38bdf8; background: #e0f2fe; color: #075985; }
 .account-merge-members small { color: #64748b; }
 .account-merge-empty { margin: 0; padding: 8px; color: #64748b; font-size: 12px; }
