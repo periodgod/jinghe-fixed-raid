@@ -22,7 +22,7 @@ const CONFIG = {
     { name: "180", chars: ["我不是问号", "雷霆2", "奥布里3", "A1804"], charUids: { "我不是问号": "35770414", "雷霆2": "35777432", "奥布里3": "35777535" } },
     { name: "153", chars: ["153蓝道夫", "枪leo1", "枪leo2", "枪leo3"], charUids: { "153蓝道夫": "35777639", "枪leo1": "36286189" } },
     { name: "头条159", chars: ["枪leo8", "枪leo9", "枪leo10", "枪leo11"], charUids: {} },
-    { name: "17833952955", chars: ["AAA建材", "AAA回收空调", "AAA回收冰箱"], charUids: {} },
+    { name: "17833952955", chars: ["AAA建材"], charUids: {} },
     { name: "180冰谷", chars: ["AAA战1", "AAA战2", "AAA战3", "AAA战4"], charUids: {} },
     { name: "180静谧", chars: ["AAA战5", "AAA战6", "AAA战7", "AAA战8"], charUids: {} },
     { name: "180真知", chars: ["AAA战9", "AAA战10", "AAA战11", "AAA战12"], charUids: {} },
@@ -130,7 +130,7 @@ const CONFIG = {
     { leader: "AAA建材", devices: { "电脑": "AAA建材", "平板": "枪leo10",    "手机1": "AAA战11", "手机2": "AAA战15" } },
     { leader: "AAA建材", devices: { "电脑": "AAA建材", "平板": "枪leo11",    "手机1": "AAA战12", "手机2": "AAA战16" } }
   ],
-  fixedRaidStandalone: ["AAA回收空调", "AAA回收冰箱"],
+  fixedRaidStandalone: [],
 
   // ---- 饰品 / 防具套装名称（两套配置彼此独立，可在网页中增删）----
   accessorySets: ["套装一", "套装二", "套装三"],

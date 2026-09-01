@@ -640,6 +640,27 @@ function removeCharacterDataFrom(data, charName) {
   removeKey(data.dailyPlanner?.phases); removeKey(data.raidPlanner?.leaderRuns);
 }
 
+// 清理已退出固定团本名单的旧回收角色，避免旧本地/云端缓存再次显示。
+function purgeRetiredFixedRaidCharacters(data) {
+  const retired = new Set(['AAA回收空调', 'AAA回收冰箱']);
+  if (!data || typeof data !== 'object') return;
+  retired.forEach(name => removeCharacterDataFrom(data, name));
+  const config = data.config;
+  if (!config || typeof config !== 'object') return;
+  if (Array.isArray(config.accounts)) {
+    config.accounts.forEach(account => {
+      if (Array.isArray(account?.chars)) account.chars = account.chars.filter(name => !retired.has(name));
+      if (account?.charUids && typeof account.charUids === 'object') retired.forEach(name => delete account.charUids[name]);
+    });
+    config.accounts = config.accounts.filter(account => (account?.chars || []).length || account?.name !== '17833952955');
+  }
+  if (Array.isArray(config.fixedRaidStandalone)) config.fixedRaidStandalone = config.fixedRaidStandalone.filter(name => !retired.has(name));
+  ['characterRoleTiers', 'characterRegions'].forEach(key => {
+    if (config[key] && typeof config[key] === 'object') retired.forEach(name => delete config[key][name]);
+  });
+  normalizeConfiguredRoster(config, window.CONFIG || {});
+}
+
 function migrateCharacterDataFrom(data, oldName, nextName) {
   if (!data || !oldName || !nextName || oldName === nextName) return;
   const moveKey = container => {
@@ -836,6 +857,7 @@ function loadData() {
       keepOnlyLatestFormationResult(data);
       (data.config.retiredRosterCharacters || []).forEach(name => removeCharacterDataFrom(data, name));
       delete data.config.retiredRosterCharacters;
+      purgeRetiredFixedRaidCharacters(data);
       purgePlaceholderCharacterData(data);
       normalizeCharacterUids(data.config.accounts);
       normalizeCharacterTaskSchedules(data.config.characterTasks, data.config.schedulingConstraints);
@@ -5553,6 +5575,7 @@ function initGame() {
     try {
       Object.keys(DATA).forEach(key => delete DATA[key]);
       Object.assign(DATA, remoteData);
+      purgeRetiredFixedRaidCharacters(DATA);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
       renderDailyStarfield();
       toast('☁️ 已同步其他设备的最新数据');
