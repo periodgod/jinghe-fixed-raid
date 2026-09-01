@@ -590,7 +590,7 @@ function normalizeConfiguredRoster(config, template) {
       { bigName: '13149147172', prefixes: ['131冰谷', '131静谧', '131真知', '131进化'] },
       { bigName: '17609146450', prefixes: ['176冰谷', '176静谧', '176真知', '176进化'] },
     ];
-    const newCharacters = [];
+    const newPairs = [];
     newBigAccounts.forEach(({ prefixes }) => prefixes.forEach(accountName => {
       let account = config.accounts.find(item => item.name === accountName);
       if (!account) { account = { name: accountName, chars: [], charUids: {} }; config.accounts.push(account); }
@@ -600,10 +600,14 @@ function normalizeConfiguredRoster(config, template) {
         const charName = `${accountName}${index}`;
         if (!account.chars.includes(charName)) account.chars.push(charName);
         config.characterRoleTiers[charName] = 'small';
-        config.characterRegions[charName] = index % 2 === 0 ? 'region2' : 'region1';
-        newCharacters.push(charName);
+        config.characterRegions[charName] = 'region1';
       }
     }));
+    newBigAccounts.forEach(({ prefixes }) => {
+      [[prefixes[0], prefixes[1]], [prefixes[2], prefixes[3]]].forEach(([firstAccount, secondAccount]) => {
+        for (let index = 1; index <= 4; index++) newPairs.push([`${firstAccount}${index}`, `${secondAccount}${index}`]);
+      });
+    });
     if (!Array.isArray(config.accountMergeGroups)) config.accountMergeGroups = [];
     newBigAccounts.forEach(({ bigName, prefixes }) => {
       const accountNames = prefixes.filter(name => config.accounts.some(account => account.name === name));
@@ -617,11 +621,10 @@ function normalizeConfiguredRoster(config, template) {
     });
     const tabletChars = ['153蓝道夫', '枪leo1', '枪leo2', '枪leo3', '我不是问号', '雷霆2', '奥布里3', 'A1804', '兵god', '兵god2', '兵god3', '兵god4', '枪leo8', '枪leo9', '枪leo10', '枪leo11'];
     if (!Array.isArray(config.fixedRaidSquads)) config.fixedRaidSquads = [];
-    for (let index = 0; index < newCharacters.length; index += 2) {
-      const left = newCharacters[index], right = newCharacters[index + 1];
+    newPairs.forEach(([left, right], index) => {
       const exists = config.fixedRaidSquads.some(squad => squad?.devices?.手机1 === left || squad?.devices?.手机2 === right || squad?.devices?.手机1 === right || squad?.devices?.手机2 === left);
-      if (!exists) config.fixedRaidSquads.push({ leader: 'AAA建材', devices: { '电脑': 'AAA建材', '平板': tabletChars[(index / 2) % tabletChars.length], '手机1': left, '手机2': right } });
-    }
+      if (!exists) config.fixedRaidSquads.push({ leader: 'AAA建材', devices: { '电脑': 'AAA建材', '平板': tabletChars[index % tabletChars.length], '手机1': left, '手机2': right } });
+    });
   }
   // v26：四个普通账号共16个角色全部为中号，固定16队的平板位逐队使用一个中号。
   if (storedRosterPlanVersion < 26) {
@@ -5740,17 +5743,25 @@ function initGame() {
   // 云端同步是异步的：先立即显示本地数据，连接成功后再用云端数据刷新。
   const applyRemoteGameData = remoteData => {
     if (!remoteData || typeof remoteData !== 'object') return;
+    let shouldRepublish = false;
     applyingRemoteGameData = true;
     try {
       Object.keys(DATA).forEach(key => delete DATA[key]);
       Object.assign(DATA, remoteData);
+      const beforeMigration = JSON.stringify(DATA);
+      normalizeConfiguredRoster(DATA.config, window.CONFIG || {});
+      ensureConfiguredRaidLeaders(DATA);
+      ensureDailyPlanner(DATA);
       purgeRetiredFixedRaidCharacters(DATA);
+      shouldRepublish = JSON.stringify(DATA) !== beforeMigration;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
       renderDailyStarfield();
       toast('☁️ 已同步其他设备的最新数据');
     } finally {
       applyingRemoteGameData = false;
     }
+    // 云端旧数据完成名单迁移后回写一次，保证其他设备也拿到新增账号和团本队伍。
+    if (shouldRepublish) saveData(DATA);
   };
   window.SUPABASE_SYNC?.init?.(DATA, applyRemoteGameData, info => {
     const label = document.getElementById('gameWeekLabel');
