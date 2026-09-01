@@ -5,6 +5,16 @@
 
 const CONFIG = {
 
+  // ---- Supabase 云端同步 ----
+  // 在 Supabase 项目中创建 game_state 表后，填写项目 URL 和 anon public key。
+  // 留空时网页继续使用浏览器本地保存，不影响离线使用。
+  supabase: {
+    url: "",
+    anonKey: "",
+    table: "game_state",
+    rowId: "default"
+  },
+
   // ---- 账号 & 角色 ----
   // 页面按这里或本地设置页中的实际账号、角色数量自动编队。
   accounts: [

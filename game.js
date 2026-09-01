@@ -897,6 +897,7 @@ function loadData() {
 }
 
 let lastGameBackupAt = 0;
+let applyingRemoteGameData = false;
 function saveData(data) {
   try {
     keepOnlyLatestFormationResult(data);
@@ -917,6 +918,7 @@ function saveData(data) {
     }
     data.configVersion = 7;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (!applyingRemoteGameData) window.SUPABASE_SYNC?.queueSave?.(data);
   } catch(e) { toast('保存失败: ' + e.message); }
 }
 
@@ -5543,6 +5545,24 @@ function initGame() {
   });
 
   renderDailyStarfield();
+
+  // 云端同步是异步的：先立即显示本地数据，连接成功后再用云端数据刷新。
+  window.SUPABASE_SYNC?.init?.(DATA, remoteData => {
+    if (!remoteData || typeof remoteData !== 'object') return;
+    applyingRemoteGameData = true;
+    try {
+      Object.keys(DATA).forEach(key => delete DATA[key]);
+      Object.assign(DATA, remoteData);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+      renderDailyStarfield();
+      toast('☁️ 已同步其他设备的最新数据');
+    } finally {
+      applyingRemoteGameData = false;
+    }
+  }, info => {
+    const label = document.getElementById('gameWeekLabel');
+    if (label && info?.message) label.title = info.message;
+  });
 
   console.log('💎 晶核日常管理已就绪');
 }
