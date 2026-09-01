@@ -52,7 +52,24 @@
   </main>
 
   <div class="toast" id="toast"></div>
-  <script src="game.js?v=20260901-5"></script>
+  <section class="coin-calculator" id="coinCalculator">
+    <div class="coin-calculator-card">
+      <h2>📊 金币套利计算器（双端计税）</h2>
+      <p class="coin-calculator-sub">固定成本 1 元/单 · 收购端扣税 + 卖出端扣税 · 自动计算盈亏平衡收购价</p>
+      <div class="coin-calc-inputs">
+        <label>📦 单次交易量 (M)<input type="number" data-calc="amount" value="1000" step="100"><span>万金币</span></label>
+        <label>⬇️ 你的收购价 (X)<input type="number" data-calc="buyPrice" value="44.05" step="0.01"><span>万/元</span></label>
+        <label>⬆️ 你的卖出价 (S)<input type="number" data-calc="sellPrice" value="38.5" step="0.01"><span>万/元</span></label>
+        <label>🧾 收购端税率<input type="number" data-calc="taxIn" value="2.7" step="0.1"><span>%</span></label>
+        <label>🧾 卖出端税率<input type="number" data-calc="taxOut" value="1" step="0.1"><span>%</span></label>
+        <label>📌 固定成本<input type="number" data-calc="fixedCost" value="1" step="0.1"><span>元/单</span></label>
+      </div>
+      <div class="coin-calc-results"><div><small>⚖️ 盈亏平衡收购价</small><strong data-calc-result="breakEven">--</strong><span>你的收购价 <b data-calc-result="compare">--</b></span></div><div><small>💰 单笔净利润</small><strong data-calc-result="profit">--</strong></div><div><small>📈 收益率</small><strong data-calc-result="yield">--</strong></div><div><small>📋 当前状态</small><strong data-calc-result="status">--</strong></div></div>
+      <p class="coin-calculator-note">临界值表示每 1 元至少能买到多少万金币才不亏，已包含双端税费。</p>
+    </div>
+  </section>
+  <script src="coin-calculator.js?v=20260901-1"></script>
+  <script src="game.js?v=20260901-6"></script>
   <script>
     window._gameInited = true;
     initGame();

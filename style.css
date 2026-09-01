@@ -1715,6 +1715,33 @@ input.game-check:hover { border-color: var(--blue); }
 .account-merge-members small { color: #64748b; }
 .account-merge-empty { margin: 0; padding: 8px; color: #64748b; font-size: 12px; }
 .account-merge-hidden-note { margin: 8px 0; padding: 7px 10px; border-radius: 8px; background: #ecfeff; color: #0e7490; font-size: 11px; }
+.raid-big-account-transfer { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 10px; padding: 10px 12px; border: 1px solid #86efac; border-radius: 10px; background: #f0fdf4; color: #14532d; }
+.raid-big-account-title { flex: 1 1 240px; }
+.raid-big-account-title strong, .raid-big-account-title small { display: block; }
+.raid-big-account-title strong { font-size: 13px; }
+.raid-big-account-title small { margin-top: 3px; color: #4d7c0f; font-size: 11px; }
+.raid-big-account-transfer label { display: grid; gap: 3px; min-width: 150px; }
+.raid-big-account-transfer label span { color: #4d7c0f; font-size: 10px; }
+.raid-big-account-transfer input { width: 160px; padding: 6px 8px; border: 1px solid #bbf7d0; border-radius: 7px; background: #fff; font-size: 12px; }
+.raid-big-account-total { margin-left: auto; padding-bottom: 7px; color: #15803d; font-size: 12px; }
+.raid-big-transfer-btn { margin-left: 5px; border: 0; border-radius: 7px; background: #dcfce7; color: #166534; padding: 6px 9px; font-size: 11px; }
+.raid-big-transfer-btn:disabled { opacity: .5; cursor: not-allowed; }
+.coin-calculator { max-width: 1180px; margin: 22px auto 40px; padding: 0 16px; }
+.coin-calculator-card { padding: 22px; border: 1px solid #dbeafe; border-radius: 18px; background: #fff; box-shadow: 0 8px 24px rgba(15, 23, 42, .06); }
+.coin-calculator-card h2 { margin: 0 0 5px; color: #0f172a; font-size: 20px; }
+.coin-calculator-sub, .coin-calculator-note { color: #64748b; font-size: 12px; }
+.coin-calculator-sub { margin: 0 0 16px; }
+.coin-calc-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.coin-calc-inputs label { display: grid; grid-template-columns: 1fr auto; gap: 5px; align-items: center; color: #334155; font-size: 12px; }
+.coin-calc-inputs label input { grid-column: 1 / -1; width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; }
+.coin-calc-inputs label span { grid-column: 2; grid-row: 1; color: #64748b; }
+.coin-calc-results { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; margin-top: 18px; }
+.coin-calc-results > div { padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
+.coin-calc-results small, .coin-calc-results span { display: block; color: #64748b; font-size: 11px; }
+.coin-calc-results strong { display: block; margin: 4px 0; color: #0f172a; font-size: 18px; }
+.coin-calc-results strong.good { color: #059669; }
+.coin-calc-results strong.bad { color: #dc2626; }
+@media (max-width: 720px) { .coin-calc-inputs, .coin-calc-results { grid-template-columns: 1fr; } .raid-big-account-total { margin-left: 0; width: 100%; } }
 
 @media (max-width: 1000px) {
   .formation-squad-list { grid-template-columns: 1fr; }

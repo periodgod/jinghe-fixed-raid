@@ -188,6 +188,7 @@ function getDefaultData() {
     characterGold: {},
     characterAntiMagic: {},
     raidTabletGoldTransfers: {},
+    raidBigAccount: { id: '', gold: 0 },
     goldTransferExecution: null,
     equipment: { unworn: {}, worn: {} },
     equipmentBuild: {},
@@ -904,6 +905,9 @@ function loadData() {
       }
       if (!data.characterAntiMagic || typeof data.characterAntiMagic !== 'object' || Array.isArray(data.characterAntiMagic)) data.characterAntiMagic = {};
       if (!data.raidTabletGoldTransfers || typeof data.raidTabletGoldTransfers !== 'object' || Array.isArray(data.raidTabletGoldTransfers)) data.raidTabletGoldTransfers = {};
+      if (!data.raidBigAccount || typeof data.raidBigAccount !== 'object' || Array.isArray(data.raidBigAccount)) data.raidBigAccount = { id: '', gold: 0 };
+      data.raidBigAccount.id = String(data.raidBigAccount.id || '').trim();
+      data.raidBigAccount.gold = Math.max(0, Math.floor(Number(data.raidBigAccount.gold) || 0));
       saveData(data);
       return data;
     }
@@ -3449,7 +3453,7 @@ function renderRaidExecutionPlan(dateStr) {
   }).join('');
   const headers = raids.map((raid, index) => `<th><div class="raid-table-raid-head"><span>${raid.icon || '⚔️'} 团本${index + 1} · ${escapeGameHtml(raid.name)}</span><small>${refreshLabel(schedules[index])}轮换 · 今日安排 ${schedules[index].units.length} 项 · ${schedules[index].completedCharacters}/${schedules[index].targetCharacters} 小号满5次</small></div></th>`).join('');
   const notes = schedules.map((schedule, index) => `<span>${raids[index].icon || '⚔️'} ${escapeGameHtml(raids[index].name)}：本轮 ${schedule.window.startDate} 至 ${schedule.window.endDate} · 剩余 ${schedule.window.daysRemaining} 天</span>`).join('');
-  return `<section class="execution-route-section raid-table-section"><div class="unified-route-summary raid-route-summary"><div><span>FIXED RAID TABLE</span><strong>每日团本安排 · R1-R${plan.squads.length}</strong><small>固定队伍统一展示；每个队伍分别完成两个当前团本${plan.standalone.length ? ` · 另含 ${plan.standalone.length} 个单刷` : ''}</small></div><div class="unified-route-actions"><b>${rows.length} 行 · 两个完成入口</b></div></div><div class="raid-cycle-note"><span>按剩余次数动态均摊，未安排队伍可点击手动补记</span>${notes}</div><div class="raid-table-scroll"><table class="raid-execution-table"><thead><tr><th>队伍</th><th>成员</th><th>抗魔</th>${headers}<th><div class="raid-table-transfer-head"><span>金币转移</span><small>手机1 + 手机2 → 平板 · 到账 97.3%</small></div></th></tr></thead><tbody>${tableRows}</tbody></table></div></section>`;
+  return `${renderRaidBigAccountTransfer()}<section class="execution-route-section raid-table-section"><div class="unified-route-summary raid-route-summary"><div><span>FIXED RAID TABLE</span><strong>每日团本安排 · R1-R${plan.squads.length}</strong><small>固定队伍统一展示；每个队伍分别完成两个当前团本${plan.standalone.length ? ` · 另含 ${plan.standalone.length} 个单刷` : ''}</small></div><div class="unified-route-actions"><b>${rows.length} 行 · 两个完成入口</b></div></div><div class="raid-cycle-note"><span>按剩余次数动态均摊，未安排队伍可点击手动补记</span>${notes}</div><div class="raid-table-scroll"><table class="raid-execution-table"><thead><tr><th>队伍</th><th>成员</th><th>抗魔</th>${headers}<th><div class="raid-table-transfer-head"><span>金币转移</span><small>手机1 + 手机2 → 平板 · 到账 97.3%</small></div></th></tr></thead><tbody>${tableRows}</tbody></table></div></section>`;
 }
 
 function getRaidTabletGoldTransfer(teamKey) {
@@ -3517,12 +3521,50 @@ function applyRaidTabletGoldTransfer(teamKey, sourceButton = null) {
   return { ok: true, ...estimate, tabletGold: transfer.tabletGold };
 }
 
+function getRaidBigAccount() {
+  if (!DATA.raidBigAccount || typeof DATA.raidBigAccount !== 'object' || Array.isArray(DATA.raidBigAccount)) DATA.raidBigAccount = { id: '', gold: 0 };
+  DATA.raidBigAccount.id = String(DATA.raidBigAccount.id || '').trim();
+  DATA.raidBigAccount.gold = Math.max(0, Math.floor(Number(DATA.raidBigAccount.gold) || 0));
+  return DATA.raidBigAccount;
+}
+
+function setRaidBigAccountField(field, value) {
+  const account = getRaidBigAccount();
+  if (field === 'id') account.id = String(value || '').trim();
+  else if (field === 'gold') account.gold = Math.max(0, Math.floor(Number(value) || 0));
+  else return;
+  saveData(DATA);
+}
+
+function applyRaidTabletToBigAccount(teamKey, sourceButton = null) {
+  const account = getRaidBigAccount();
+  const transfer = getRaidTabletGoldTransfer(teamKey);
+  const amount = Math.max(0, Math.floor(Number(transfer.tabletGold) || 0));
+  if (!account.id) { toast('请先填写大号 ID'); return { ok: false, message: '请先填写大号 ID' }; }
+  if (amount <= 0) { toast('当前平板没有可转移金币'); return { ok: false, message: '当前平板没有可转移金币' }; }
+  const received = Math.floor(amount * RAID_TABLET_GOLD_TRANSFER_PER_MILLE / 1000);
+  const loss = amount - received;
+  account.gold += received;
+  transfer.tabletGold = 0;
+  saveData(DATA);
+  renderDailyStarfield();
+  toast(`${teamKey} 已转入大号 ${formatGameGold(received)} 金币，税损 ${formatGameGold(loss)}`);
+  return { ok: true, amount, received, loss, gold: account.gold };
+}
+
+function renderRaidBigAccountTransfer() {
+  const account = getRaidBigAccount();
+  return `<section class="raid-big-account-transfer"><div class="raid-big-account-title"><strong>大号金币汇总</strong><small>先完成各队“转入平板”，再点击队伍中的“转入大号”；转入大号按 2.7% 税率扣除。</small></div><label><span>大号 ID</span><input type="text" value="${escapeGameAttr(account.id)}" placeholder="填写大号 ID" autocomplete="off" oninput="setRaidBigAccountField('id',this.value)"></label><label><span>大号金币</span><input type="number" min="0" step="1" inputmode="numeric" value="${account.gold}" oninput="setRaidBigAccountField('gold',this.value)"></label><strong class="raid-big-account-total">当前大号余额：${formatGameGold(account.gold)}</strong></section>`;
+}
+
 function renderRaidTabletGoldTransfer(teamKey) {
   const transfer = getRaidTabletGoldTransfer(teamKey);
   const estimate = getRaidTabletGoldTransferEstimate(teamKey);
   const encodedKey = encodeURIComponent(teamKey);
   const renderGoldInput = (field, label, value) => `<label><span>${label}</span><input type="number" min="0" step="1" inputmode="numeric" value="${value}" data-raid-gold-field="${field}" aria-label="${escapeGameAttr(teamKey)} ${label}金币" oninput="setRaidTabletGoldTransferField(decodeURIComponent('${encodedKey}'),'${field}',this.value,this)"></label>`;
-  return `<div class="raid-gold-transfer" data-team-key="${escapeGameAttr(teamKey)}"><label class="raid-gold-tablet-id"><span>平板 ID</span><input type="text" value="${escapeGameAttr(transfer.tabletId)}" placeholder="填写平板 ID" autocomplete="off" aria-label="${escapeGameAttr(teamKey)} 平板 ID" oninput="setRaidTabletGoldTransferField(decodeURIComponent('${encodedKey}'),'tabletId',this.value,this)"></label><div class="raid-gold-balance-grid">${renderGoldInput('tabletGold', '平板', transfer.tabletGold)}${renderGoldInput('phone1Gold', '手机1', transfer.phone1Gold)}${renderGoldInput('phone2Gold', '手机2', transfer.phone2Gold)}</div><div class="raid-gold-transfer-action"><small class="raid-gold-transfer-preview">预计到账 ${formatGameGold(estimate.received)} · 损耗 ${formatGameGold(estimate.loss)}</small><button class="raid-gold-transfer-btn" type="button" ${!transfer.tabletId || estimate.sourceTotal <= 0 ? 'disabled' : ''} onclick="applyRaidTabletGoldTransfer(decodeURIComponent('${encodedKey}'),this)">转入平板</button></div></div>`;
+  const bigAccount = getRaidBigAccount();
+  const bigTransferReceived = Math.floor(transfer.tabletGold * RAID_TABLET_GOLD_TRANSFER_PER_MILLE / 1000);
+  return `<div class="raid-gold-transfer" data-team-key="${escapeGameAttr(teamKey)}"><label class="raid-gold-tablet-id"><span>平板 ID</span><input type="text" value="${escapeGameAttr(transfer.tabletId)}" placeholder="填写平板 ID" autocomplete="off" aria-label="${escapeGameAttr(teamKey)} 平板 ID" oninput="setRaidTabletGoldTransferField(decodeURIComponent('${encodedKey}'),'tabletId',this.value,this)"></label><div class="raid-gold-balance-grid">${renderGoldInput('tabletGold', '平板', transfer.tabletGold)}${renderGoldInput('phone1Gold', '手机1', transfer.phone1Gold)}${renderGoldInput('phone2Gold', '手机2', transfer.phone2Gold)}</div><div class="raid-gold-transfer-action"><small class="raid-gold-transfer-preview">预计到账 ${formatGameGold(estimate.received)} · 损耗 ${formatGameGold(estimate.loss)}</small><button class="raid-gold-transfer-btn" type="button" ${!transfer.tabletId || estimate.sourceTotal <= 0 ? 'disabled' : ''} onclick="applyRaidTabletGoldTransfer(decodeURIComponent('${encodedKey}'),this)">转入平板</button><button class="raid-big-transfer-btn" type="button" ${!bigAccount.id || transfer.tabletGold <= 0 ? 'disabled' : ''} onclick="applyRaidTabletToBigAccount(decodeURIComponent('${encodedKey}'),this)">转入大号（到账${formatGameGold(bigTransferReceived)}）</button></div></div>`;
 }
 
 function renderUnifiedExecutionPlan(dateStr) {
