@@ -33,6 +33,10 @@ const CONFIG = {
     { name: "159进化", chars: ["AAA枪13", "AAA枪14", "AAA枪15", "AAA枪16"], charUids: {} }
   ],
 
+  // 账号管理页专用：把多个不同大区的账号合并显示为同一个“大账号”。
+  // 不参与团本编队、日常限制或账号判定；ID/备注仅用于管理页记录。
+  accountMergeGroups: [],
+
   // 编号和设备仅用于显示；编队不再依赖固定槽位。
   rosterPlanVersion: 29,
   preferredRaidLeaders: ["AAA建材"],

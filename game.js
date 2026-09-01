@@ -859,6 +859,7 @@ function loadData() {
       delete data.config.retiredRosterCharacters;
       purgeRetiredFixedRaidCharacters(data);
       purgePlaceholderCharacterData(data);
+      ensureAccountMergeGroups(data.config);
       normalizeCharacterUids(data.config.accounts);
       normalizeCharacterTaskSchedules(data.config.characterTasks, data.config.schedulingConstraints);
       if (!data.equipment || Array.isArray(data.equipment)) data.equipment = {};
@@ -915,6 +916,7 @@ function loadData() {
   ensureConfiguredRaidLeaders(defaults);
   ensureDailyPlanner(defaults);
   ensureDailyRuleMigration(defaults);
+  ensureAccountMergeGroups(defaults.config);
   return defaults;
 }
 
@@ -3619,7 +3621,9 @@ function renderCoreRosterManager() {
   const wrap = document.getElementById('coreRosterManagerContent');
   if (!wrap) return;
   const accounts = DATA.config?.accounts || [];
-  wrap.innerHTML = `<div class="core-roster-summary"><strong>${accounts.length} 个账号 · ${getAllChars().length} 个角色</strong><span>等级仅约束团本；大区仅约束日常，1大区与2大区不能组成日常队。</span></div><div class="core-roster-account-list">${accounts.map((account, accountIndex) => `<article class="core-roster-account"><header><label><span>账号</span><input value="${escapeGameAttr(account.name)}" onchange="updateCoreAccountName(${accountIndex},this.value)"></label><small>${(account.chars || []).length}个角色</small><button class="core-account-delete" type="button" onclick="removeCoreAccount(${accountIndex})">删除账号</button></header><div>${(account.chars || []).map((charName, charIndex) => `<section><input value="${escapeGameAttr(charName)}" onchange="renameCoreCharacter(${accountIndex},${charIndex},this.value)"><select aria-label="${escapeGameAttr(charName)}团本等级" onchange="setCharacterRoleTier(decodeURIComponent('${encodeURIComponent(charName)}'),this.value)"><option value="large" ${getCharacterRoleTier(charName) === 'large' ? 'selected' : ''}>大号</option><option value="medium" ${getCharacterRoleTier(charName) === 'medium' ? 'selected' : ''}>中号</option><option value="small" ${getCharacterRoleTier(charName) === 'small' ? 'selected' : ''}>小号</option></select><select aria-label="${escapeGameAttr(charName)}大区" onchange="setCharacterRegion(decodeURIComponent('${encodeURIComponent(charName)}'),this.value)"><option value="region1" ${getCharacterRegion(charName) === 'region1' ? 'selected' : ''}>1大区</option><option value="region2" ${getCharacterRegion(charName) === 'region2' ? 'selected' : ''}>2大区</option></select><button type="button" onclick="removeCoreCharacter(${accountIndex},${charIndex})">删除</button></section>`).join('')}</div><button class="core-roster-add" type="button" onclick="addCoreCharacter(${accountIndex})">＋ 添加角色</button></article>`).join('')}</div><button class="game-btn game-btn-blue" type="button" onclick="addCoreAccount()">＋ 添加账号</button>`;
+  const mergeGroups = ensureAccountMergeGroups(DATA.config);
+  const mergeHtml = `<section class="account-merge-panel"><div class="account-merge-head"><div><strong>大账号合并显示</strong><small>例如把“159冰谷”和“159静谧”归到同一个大账号；仅影响本管理页显示，不改变团本编队。</small></div><button class="game-btn game-btn-blue game-btn-sm" type="button" onclick="addAccountMergeGroup()">＋ 新增大账号</button></div>${mergeGroups.length ? `<div class="account-merge-list">${mergeGroups.map((group, groupIndex) => `<article class="account-merge-card"><header><label><span>名称</span><input value="${escapeGameAttr(group.name)}" onchange="updateAccountMergeGroup(${groupIndex},'name',this.value)"></label><label><span>ID</span><input value="${escapeGameAttr(group.accountId)}" placeholder="填写大账号 ID" onchange="updateAccountMergeGroup(${groupIndex},'accountId',this.value)"></label><label><span>备注</span><input value="${escapeGameAttr(group.accountNote)}" placeholder="填写备注" onchange="updateAccountMergeGroup(${groupIndex},'accountNote',this.value)"></label><button class="core-account-delete" type="button" onclick="removeAccountMergeGroup(${groupIndex})">删除合并组</button></header><div class="account-merge-members">${accounts.map(account => `<label><input type="checkbox" ${group.accountNames.includes(account.name) ? 'checked' : ''} onchange="toggleAccountMergeMember(${groupIndex},decodeURIComponent('${encodeURIComponent(account.name)}'),this.checked)"><span>${escapeGameHtml(account.name)} <small>${(account.chars || []).length}个角色</small></span></label>`).join('')}</div></article>`).join('')}</div>` : '<p class="account-merge-empty">还没有合并组。点击“新增大账号”，再勾选属于同一个大账号的多个区服账号。</p>'}</section>`;
+  wrap.innerHTML = `<div class="core-roster-summary"><strong>${accounts.length} 个账号 · ${getAllChars().length} 个角色</strong><span>等级仅约束团本；大区仅约束日常，合并显示只在账号管理页生效。</span></div>${mergeHtml}<div class="core-roster-account-list">${accounts.map((account, accountIndex) => `<article class="core-roster-account"><header><label><span>账号</span><input value="${escapeGameAttr(account.name)}" onchange="updateCoreAccountName(${accountIndex},this.value)"></label><small>${(account.chars || []).length}个角色</small><button class="core-account-delete" type="button" onclick="removeCoreAccount(${accountIndex})">删除账号</button></header><div>${(account.chars || []).map((charName, charIndex) => `<section><input value="${escapeGameAttr(charName)}" onchange="renameCoreCharacter(${accountIndex},${charIndex},this.value)"><select aria-label="${escapeGameAttr(charName)}团本等级" onchange="setCharacterRoleTier(decodeURIComponent('${encodeURIComponent(charName)}'),this.value)"><option value="large" ${getCharacterRoleTier(charName) === 'large' ? 'selected' : ''}>大号</option><option value="medium" ${getCharacterRoleTier(charName) === 'medium' ? 'selected' : ''}>中号</option><option value="small" ${getCharacterRoleTier(charName) === 'small' ? 'selected' : ''}>小号</option></select><select aria-label="${escapeGameAttr(charName)}大区" onchange="setCharacterRegion(decodeURIComponent('${encodeURIComponent(charName)}'),this.value)"><option value="region1" ${getCharacterRegion(charName) === 'region1' ? 'selected' : ''}>1大区</option><option value="region2" ${getCharacterRegion(charName) === 'region2' ? 'selected' : ''}>2大区</option></select><button type="button" onclick="removeCoreCharacter(${accountIndex},${charIndex})">删除</button></section>`).join('')}</div><button class="core-roster-add" type="button" onclick="addCoreCharacter(${accountIndex})">＋ 添加角色</button></article>`).join('')}</div><button class="game-btn game-btn-blue" type="button" onclick="addCoreAccount()">＋ 添加账号</button>`;
 }
 
 function invalidateRosterCaches() {
@@ -3629,6 +3633,63 @@ function invalidateRosterCaches() {
   dailyStarFormationCacheValue = null;
 }
 
+function ensureAccountMergeGroups(config = DATA?.config) {
+  if (!config || typeof config !== 'object') return [];
+  if (!Array.isArray(config.accountMergeGroups)) config.accountMergeGroups = [];
+  const validAccounts = new Set((config.accounts || []).map(account => account?.name).filter(Boolean));
+  config.accountMergeGroups = config.accountMergeGroups.filter(group => group && typeof group === 'object');
+  config.accountMergeGroups.forEach((group, index) => {
+    if (!group.id) group.id = `merge-${Date.now()}-${index}`;
+    if (!String(group.name || '').trim()) group.name = `大账号${index + 1}`;
+    group.accountNames = [...new Set((Array.isArray(group.accountNames) ? group.accountNames : []).filter(name => validAccounts.has(name)))];
+    group.accountId = String(group.accountId || '');
+    group.accountNote = String(group.accountNote ?? group.accountM ?? '');
+  });
+  return config.accountMergeGroups;
+}
+
+function saveAccountMergeGroups() {
+  ensureAccountMergeGroups(DATA.config);
+  saveData(DATA);
+  renderCoreRosterManager();
+}
+
+function addAccountMergeGroup() {
+  const groups = ensureAccountMergeGroups(DATA.config);
+  groups.push({ id: `merge-${Date.now()}`, name: `大账号${groups.length + 1}`, accountNames: [], accountId: '', accountNote: '' });
+  saveAccountMergeGroups();
+}
+
+function removeAccountMergeGroup(groupIndex) {
+  const groups = ensureAccountMergeGroups(DATA.config);
+  if (!groups[groupIndex]) return;
+  if (!confirm(`确定删除合并组“${groups[groupIndex].name}”吗？账号本身不会删除。`)) return;
+  groups.splice(groupIndex, 1);
+  saveAccountMergeGroups();
+}
+
+function updateAccountMergeGroup(groupIndex, field, value) {
+  const groups = ensureAccountMergeGroups(DATA.config);
+  const group = groups[groupIndex];
+  if (!group || !['name', 'accountId', 'accountNote'].includes(field)) return;
+  group[field] = String(value || '').trim();
+  if (field === 'name' && !group[field]) group[field] = `大账号${groupIndex + 1}`;
+  saveAccountMergeGroups();
+}
+
+function toggleAccountMergeMember(groupIndex, accountName, checked) {
+  const groups = ensureAccountMergeGroups(DATA.config);
+  const group = groups[groupIndex];
+  if (!group || !accountName) return;
+  groups.forEach((item, index) => {
+    if (index !== groupIndex) item.accountNames = (item.accountNames || []).filter(name => name !== accountName);
+  });
+  const members = new Set(group.accountNames || []);
+  if (checked) members.add(accountName); else members.delete(accountName);
+  group.accountNames = [...members];
+  saveAccountMergeGroups();
+}
+
 function updateCoreAccountName(index, value) {
   const account = DATA.config.accounts?.[index];
   const nextName = String(value || '').trim();
@@ -3636,6 +3697,9 @@ function updateCoreAccountName(index, value) {
   if (DATA.config.accounts.some((item, itemIndex) => itemIndex !== index && item.name === nextName)) { toast('账号名不能重复'); renderCoreRosterManager(); return; }
   const oldName = account.name;
   account.name = nextName;
+  ensureAccountMergeGroups(DATA.config).forEach(group => {
+    group.accountNames = (group.accountNames || []).map(name => name === oldName ? nextName : name);
+  });
   if ((account.chars || []).includes('AAA建材')) {
     if (!DATA.config.schedulingConstraints.requiredAccountDevices || typeof DATA.config.schedulingConstraints.requiredAccountDevices !== 'object') {
       DATA.config.schedulingConstraints.requiredAccountDevices = {};
@@ -3778,6 +3842,9 @@ function removeCoreAccount(accountIndex) {
     removeCharacterData(charName);
   });
   DATA.config.accounts.splice(accountIndex, 1);
+  ensureAccountMergeGroups(DATA.config).forEach(group => {
+    group.accountNames = (group.accountNames || []).filter(name => name !== account.name);
+  });
   invalidateRosterCaches();
   saveData(DATA);
   renderCoreRosterManager();
