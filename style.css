@@ -1719,6 +1719,10 @@ input.game-check:hover { border-color: var(--blue); }
 .account-merge-child-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px; background: #f8fcff; }
 .account-merge-child { min-width: 0; border-color: #bfdbfe; }
 .account-merge-child > header { background: #eff6ff; }
+.account-merge-add-label { display: flex; align-items: center; gap: 8px; grid-column: 1 / -1; padding: 2px 0 4px; color: #075985; font-size: 11px; }
+.account-merge-add-label select { min-width: 210px; padding: 6px 8px; border: 1px solid #bae6fd; border-radius: 7px; background: #fff; color: #0f172a; font-size: 12px; }
+.account-merge-child-wrap { min-width: 0; }
+.account-merge-child-toggle { display: inline-flex; align-items: center; gap: 5px; margin: 0 0 4px 3px; color: #0369a1; font-size: 10px; }
 .raid-big-account-transfer { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 10px; padding: 10px 12px; border: 1px solid #86efac; border-radius: 10px; background: #f0fdf4; color: #14532d; }
 .raid-big-account-title { flex: 1 1 240px; }
 .raid-big-account-title strong, .raid-big-account-title small { display: block; }
