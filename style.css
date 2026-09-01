@@ -1714,6 +1714,7 @@ input.game-check:hover { border-color: var(--blue); }
 .account-merge-members label:has(input:checked) { border-color: #38bdf8; background: #e0f2fe; color: #075985; }
 .account-merge-members small { color: #64748b; }
 .account-merge-empty { margin: 0; padding: 8px; color: #64748b; font-size: 12px; }
+.account-merge-hidden-note { margin: 8px 0; padding: 7px 10px; border-radius: 8px; background: #ecfeff; color: #0e7490; font-size: 11px; }
 
 @media (max-width: 1000px) {
   .formation-squad-list { grid-template-columns: 1fr; }
