@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>晶核固定团本</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css?v=20260827-2">
+  <script src="config.js?v=20260824-3"></script>
+</head>
+<body>
+  <header class="topbar compact-topbar">
+    <span class="logo">⚔️ 晶核固定团本</span>
+    <span id="gameWeekLabel" class="game-week-label"></span>
+  </header>
+
+  <main class="mode active" id="mode-game">
+    <nav class="game-tabs core-game-tabs" aria-label="核心功能">
+      <button class="game-tab active" data-game-page="daily-star">⚔️ 固定团本</button>
+    </nav>
+
+    <div class="game-main core-game-main">
+      <section class="game-page active" id="game-page-daily-star">
+        <div class="raid-starfield-shell daily-starfield-shell">
+          <div class="raid-starfield-heading">
+            <div>
+              <span class="raid-starfield-kicker">FIXED RAID ROUTE</span>
+              <h1>⚔️ 固定团本</h1>
+              <p>16个固定队伍不变；团本1、团本2按各自七天窗口动态补齐，并分别记录完成。</p>
+            </div>
+            <div class="starfield-heading-actions">
+              <div class="starfield-date-nav">
+                <button type="button" onclick="switchDay(-1)">◀</button>
+                <strong id="dailyStarDate"></strong>
+                <button type="button" onclick="switchDay(1)">▶</button>
+                <button type="button" onclick="switchDay(0)">今天</button>
+              </div>
+              <button class="game-btn raid-refresh-btn" type="button" onclick="refreshWeeklyRaids()">↻ 手动校正轮换 +1</button>
+              <button class="game-btn raid-refresh-btn" type="button" onclick="toggleRosterManager()">👥 账号与角色管理</button>
+            </div>
+          </div>
+          <section class="core-roster-manager" id="coreRosterManager" hidden>
+            <div class="core-roster-manager-head"><div><span>ACCOUNT, ROLE & REGION</span><h2>账号与角色管理</h2><p>角色名称、团本等级和大区标注修改后立即保存。</p></div><button type="button" onclick="toggleRosterManager(false)">关闭</button></div>
+            <div id="coreRosterManagerContent"></div>
+          </section>
+          <div id="dailyStarfieldContent"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="game.js?v=20260827-2"></script>
+  <script>
+    window._gameInited = true;
+    initGame();
+    console.log('⚔️ 晶核固定团本已就绪');
+  </script>
+</body>
+</html>
